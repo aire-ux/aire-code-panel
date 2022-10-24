@@ -16,6 +16,7 @@ import com.vaadin.flow.component.HtmlContainer;
 /**
  * uncomment this if you have deployed this component into NPMJS
  */
+@NpmPackage(value = "prismjs", version = "1.29.0")
 //@NpmPackage(value = "@${organzation}/@aire-code-panel", version = Versions.CodePanel_VERSION)
 public class CodePanel extends HtmlContainer {
 
