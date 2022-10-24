@@ -15,15 +15,15 @@ def writeProperties(props) {
 def setVersion() {
     def newVersion = System.getProperty("newVersion")
 
-    if(!newVersion) {
+    if (!newVersion) {
         newVersion = "${System.getenv("CURRENT_MAJOR_VERSION")}.${System.getenv("CURRENT_MINOR_VERSION")}.${System.getenv("BUILD_NUMBER")}"
-        if(System.getProperty("zephyrRelease")) {
+        if (System.getProperty("zephyrRelease")) {
             newVersion += ".Final"
         } else {
             newVersion += "-SNAPSHOT"
         }
     }
-    if(newVersion) {
+    if (newVersion) {
         println("Setting version from $project.version to $newVersion")
         def props = loadProperties()
         props.version = newVersion.toString()
@@ -35,6 +35,7 @@ def setVersion() {
     }
 
 }
+
 project.tasks.register("setVersion") {
     doLast {
         setVersion()
@@ -42,9 +43,17 @@ project.tasks.register("setVersion") {
 }
 
 
+task copyPrismResources(type: Copy) {
+    from "node_modules/prismjs"
+    into "${buildDir}/generated/sources/main/resources/prismjs"
+
+}
+assemble.dependsOn copyPrismResources
+assemble.mustRunAfter copyPrismResources
+
 task populateVersions(type: Copy) {
     from "${project.projectDir}/src/main/resources/templates/Versions.java"
-    into "${buildDir}/generated/sources/main/java/io.sunshower.aire.ux.components"
+    into "${buildDir}/generated/sources/main/java/io/sunshower/aire/ux/components"
 
     def properties = new Properties()
     file("gradle.properties").withInputStream {
@@ -63,7 +72,7 @@ task populateVersions(type: Copy) {
 
 task populatePaths(type: Copy) {
     from "$project.projectDir/src/main/resources/templates/Paths.java"
-    into "$buildDir/generated/sources/main/java/io.sunshower.aire.ux.components"
+    into "$buildDir/generated/sources/main/java/io/sunshower/aire/ux/components"
 
     def productionMode = findProperty('production') != null
     def properties = new Properties()
@@ -75,14 +84,62 @@ task populatePaths(type: Copy) {
 }
 
 
-task populate(dependsOn:['populatePaths', 'populateVersions']){
+task populate(dependsOn: ['populatePaths', 'populateVersions']) {
     group = "development"
 }
+
+
+import groovy.text.GStringTemplateEngine;
+
+task generateLanguagesEnumeration() {
+
+    def directory = new File("${project.rootDir}/node_modules/prismjs/components")
+    if (!directory.exists()) {
+        logger.error("Error: directory ${directory} does not exist (did you run 'npm install')?")
+    } else {
+        def templateFile = new File("${project.rootDir}/src/main/resources/templates/Languages.template")
+        def templateEngine = new GStringTemplateEngine();
+        def template = templateEngine.createTemplate(templateFile.text)
+        def names = []
+        def enumNames = []
+        directory.eachFile { file ->
+            if (file.name.endsWith("min.js")) {
+                names.push(file.name)
+                def segs = file.name.split("-")
+                def n = "${segs[0].toUpperCase()}_${segs[1].toUpperCase()}"
+                def idx = n.indexOf('.')
+                if(idx != -1) {
+                    def name = n.substring(0, idx).substring("PRISM_".length())
+                    enumNames.push(name)
+                }
+            }
+        }
+
+
+        def model = [
+            fileNames: names,
+            enumNames: enumNames
+        ]
+
+        def result = template.make(model).toString()
+        def out = new File("${project.buildDir}/generated/sources/main/java/io/sunshower/aire/ux/components/Language.java")
+        if(!out.exists()) {
+            out.parentFile.mkdirs()
+            out.createNewFile()
+        }
+        out.text = result
+
+    }
+
+
+}
+
 
 compileJava.dependsOn populate
 compileJava.mustRunAfter populate
 
-
+compileJava.dependsOn generateLanguagesEnumeration
+compileJava.mustRunAfter generateLanguagesEnumeration
 
 
 task linkSelf(type: NpmTask) {
@@ -102,10 +159,8 @@ task buildResources(type: NpmTask) {
 
 task develop() {
     group = 'development'
-    dependsOn(
-            'nodeSetup',
+    dependsOn('nodeSetup',
             'buildResources',
             'build',
-            'runDevelopment'
-    )
+            'runDevelopment')
 }
