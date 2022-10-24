@@ -26,7 +26,7 @@
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {
-      "@aire-ux/aire-code-panel/*": ["./src/main/typescript/*"]
+      "@aire-ux/aire-console-layout/*": ["./src/main/typescript/*"]
     },
     "types": ["vitest/globals"]
   },

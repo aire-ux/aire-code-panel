@@ -92,6 +92,7 @@ dependencies {
 
     [
             'com.vaadin:flow-server',
+            'com.vaadin:flow-client',
             'com.vaadin:vaadin-icons-flow',
             'com.vaadin:vaadin-button-flow',
             'com.vaadin:vaadin-ordered-layout-flow',
