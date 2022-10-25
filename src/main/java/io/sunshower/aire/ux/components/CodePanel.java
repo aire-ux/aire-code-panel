@@ -7,6 +7,7 @@ import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
+import lombok.NonNull;
 
 @Tag("aire-code-panel")
 @JsModule(Paths.CodePanel_SOURCE)
@@ -27,7 +28,17 @@ public class CodePanel extends HtmlContainer {
   static final PropertyDescriptor<String, String> CONTENTS =
       PropertyDescriptors.propertyWithDefault("contents", "");
 
-  public CodePanel() {}
+
+  private final LanguageLoader loader;
+
+
+  public CodePanel(LanguageLoader loader) {
+    this.loader = loader;
+  }
+
+  public CodePanel() {
+    this(new ClassPathLanguageLoader());
+  }
 
   public void setLanguage(String language) {
     LANGUAGE.set(getElement(), language);
@@ -45,11 +56,17 @@ public class CodePanel extends HtmlContainer {
     return CONTENTS.get(getElement());
   }
 
-  public void addLanguage(Grammar grammar) {}
+  public void addLanguage(Grammar grammar) {
+  }
 
 
   public void setLanguage(Language language) {
 
   }
 
+
+  @NonNull
+  protected LanguageLoader getLoader() {
+    return loader;
+  }
 }
