@@ -58,7 +58,9 @@ task('watch:typescript', () => {
 
 task('build:scss', () => {
   return src('./src/main/scss/**/*.scss')
-      .pipe(sass().on('error', sass.logError))
+      .pipe(sass({
+        includePaths: ["node_modules/prismjs/themes"]
+      }).on('error', sass.logError))
       .pipe(dest('./dist/styles'))
       .pipe(dest('./frontend/dist/styles'));
 });

@@ -104,12 +104,12 @@ task generateLanguagesEnumeration() {
         def enumNames = []
         directory.eachFile { file ->
             if (file.name.endsWith("min.js")) {
-                names.push(file.name)
                 def segs = file.name.split("-")
                 def n = "${segs[0].toUpperCase()}_${segs[1].toUpperCase()}"
                 def idx = n.indexOf('.')
                 if(idx != -1) {
                     def name = n.substring(0, idx).substring("PRISM_".length())
+                    names.push(file.name)
                     enumNames.push(name)
                 }
             }
