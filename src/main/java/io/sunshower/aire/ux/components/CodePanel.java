@@ -3,21 +3,16 @@ package io.sunshower.aire.ux.components;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasSize;
-import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.PropertyDescriptor;
 import com.vaadin.flow.component.PropertyDescriptors;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
-import com.vaadin.flow.component.dependency.StyleSheet;
 import elemental.json.Json;
 import io.sunshower.arcus.condensation.Condensation;
 import io.sunshower.lang.tuple.Pair;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Locale;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -46,14 +41,21 @@ public class CodePanel extends Component implements HasSize {
 
 
   static final String PREFIX;
-  private static final String SET_LANGUAGE_FUNCTION_NAME;
+
+  private static final String REGISTER_PLUGIN_FUNCTION_NAME;
+  private static final String REGISTER_LANGUAGE_FUNCTION_NAME;
+
+  private static final String PLUGIN_PREFIX;
 
   static {
     condensation = Condensation.create("json");
     PREFIX = "prismjs/components/%s";
+    PLUGIN_PREFIX = "prismjs/plugins/%s/%s";
     LANGUAGE = PropertyDescriptors.propertyWithDefault("language", "");
     CONTENTS = PropertyDescriptors.propertyWithDefault("contents", "");
-    SET_LANGUAGE_FUNCTION_NAME = "addLanguageDefinition";
+    REGISTER_PLUGIN_FUNCTION_NAME = "registerPlugin";
+    REGISTER_LANGUAGE_FUNCTION_NAME = "registerLanguage";
+//    LINE_NUMBERS_ENABLED = PropertyDescriptors.propertyWithDefault("line-numbers", true);
   }
 
 
@@ -62,6 +64,21 @@ public class CodePanel extends Component implements HasSize {
 
   public CodePanel(LanguageLoader loader) {
     this.loader = loader;
+  }
+
+  public void setLineNumbersEnabled(boolean enabled) {
+    if (!isLineNumbersEnabled()) {
+      registerPlugin("line-numbers");
+    }
+    getElement().setAttribute("line-numbers", enabled);
+  }
+
+  public boolean isLineNumbersEnabled() {
+    val lineNumbers = getElement().getAttribute("line-numbers");
+    if (lineNumbers == null) {
+      return false;
+    }
+    return Boolean.parseBoolean(lineNumbers);
   }
 
   public CodePanel() {
@@ -92,15 +109,25 @@ public class CodePanel extends Component implements HasSize {
   public void setLanguage(Language language) {
     val definition = loader.load(PREFIX.formatted(language.getFileName())).toString();
     getElement().callJsFunction(
-        SET_LANGUAGE_FUNCTION_NAME,
+        REGISTER_LANGUAGE_FUNCTION_NAME,
         language.name().toLowerCase(Locale.ROOT),
         definition
     );
   }
 
+  public void registerPlugin(String name) {
+    val stylesheet = PLUGIN_PREFIX.formatted(name, "prism-" + name + ".min.css");
+    val js = loader.load(PLUGIN_PREFIX.formatted(name, "prism-" + name + ".min.js"));
+    registerStyles(stylesheet);
+    getElement().callJsFunction(
+        REGISTER_PLUGIN_FUNCTION_NAME,
+        js.toString()
+    );
+  }
+
   @Override
   protected void onAttach(AttachEvent attachEvent) {
-    registerStyles("prism.css", "prism-dark.css");
+    registerStyles("prismjs/themes/prism.css", "prismjs/themes/prism-dark.css");
   }
 
   @NonNull
@@ -111,7 +138,7 @@ public class CodePanel extends Component implements HasSize {
 
   public void registerStyles(String... names) {
     val results = IntStream.range(0, names.length)
-        .mapToObj(i -> Pair.of(i, "prismjs/themes/" + names[i]))
+        .mapToObj(i -> Pair.of(i, names[i]))
         .map(pair -> Pair.of(pair.fst, loader.load(pair.snd()).toString()))
         .reduce(Json.createArray(), (t, u) -> {
           t.set(u.fst, Json.create(u.snd));
@@ -119,4 +146,5 @@ public class CodePanel extends Component implements HasSize {
         }, (u, v) -> u);
     getElement().callJsFunction("importStyles", results);
   }
+
 }

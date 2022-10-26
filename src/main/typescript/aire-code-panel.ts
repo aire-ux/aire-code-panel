@@ -17,8 +17,9 @@ import {
   query,
 } from 'lit/decorators/query.js'
 
-import * as prism from "prismjs";
-import {css, registerStyles, ThemableMixinClass} from "@vaadin/vaadin-themable-mixin";
+import * as Prism from "prismjs";
+import {css, ThemableMixinClass} from "@vaadin/vaadin-themable-mixin";
+(window as any).Prism = Prism;
 
 @customElement('aire-code-panel')
 export class CodePanel extends LitElement implements ThemableMixinClass {
@@ -35,6 +36,11 @@ export class CodePanel extends LitElement implements ThemableMixinClass {
   @property({type: String, attribute: false})
   contents: string | undefined;
 
+  @property({
+    type: Boolean,
+    attribute: 'line-numbers',
+  })
+  lineNumbers: Boolean | undefined;
 
   /**
    * the current language
@@ -60,7 +66,7 @@ export class CodePanel extends LitElement implements ThemableMixinClass {
       <style>
         ${this.dynamicStyles.join('\n')}
       </style>
-      <pre>
+      <pre class="${this.lineNumbers ? 'line-numbers' : 'no-line-numbers'} language-${this.language}">
         <code class="code-container language-${this.language}">
         </code>
       </pre>
@@ -83,16 +89,35 @@ export class CodePanel extends LitElement implements ThemableMixinClass {
   }
 
 
-  public addLanguageDefinition(name: string, definition: string): void {
+  attributeChangedCallback(name: string, _old: string | null, value: string | null) {
+    super.attributeChangedCallback(name, _old, value);
+    this.requestUpdate();
+  }
+
+
+  public registerPlugin(definition: string): void {
     const f = Function(definition);
     f();
+    // const highlightedDom = Prism.highlight(
+    //     this.contents!,
+    //     Prism.languages[this.language!],
+    //     this.language!
+    // );
+    // this.contents = highlightedDom;
+    this.requestUpdate();
+  }
+
+  public registerLanguage(name: string, definition: string): void {
+    const f = Function(definition);
+    f(Prism);
     this.language = name;
-    const highlightedDom = prism.highlight(
+    const highlightedDom = Prism.highlight(
         this.contents!,
-        prism.languages.java,
+        Prism.languages[name],
         this.language!
     );
     this.contents = highlightedDom;
+    this.requestUpdate();
   }
 
 }

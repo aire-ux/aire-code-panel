@@ -1,6 +1,7 @@
 package io.sunshower.aire.ux.components.routes;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.RouteScope;
@@ -20,12 +21,20 @@ public class CodePanelRoute extends VerticalLayout {
     panel.setLanguage("java");
     panel.setContents(
         """
-        public static void main(String[] args) {
-          System.out.println("waddup");
-        }
+
+
+public static void main(String[] args) {
+  System.out.println("hello");
+}
         """);
 
+    panel.setLineNumbersEnabled(true);
+    panel.registerStyles("prismjs/themes/prism-dark.css");
 
+    add(new Button("Toggle Numbers", (click) -> {
+      panel.setLineNumbersEnabled(!panel.isLineNumbersEnabled());
+
+    }));
     add(panel);
   }
 
@@ -33,4 +42,5 @@ public class CodePanelRoute extends VerticalLayout {
   protected void onAttach(AttachEvent attachEvent) {
     panel.setLanguage(Language.JAVA);
   }
+
 }
