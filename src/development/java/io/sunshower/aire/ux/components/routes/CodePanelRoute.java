@@ -29,7 +29,8 @@ public static void main(String[] args) {
         """);
 
     panel.setLineNumbersEnabled(true);
-    panel.registerStyles("prismjs/themes/prism-dark.css");
+    panel.registerPlugin("toolbar");
+    panel.registerStyles("prismjs/themes/prism-okaidia.css");
 
     add(new Button("Toggle Numbers", (click) -> {
       panel.setLineNumbersEnabled(!panel.isLineNumbersEnabled());

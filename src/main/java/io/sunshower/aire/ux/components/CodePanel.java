@@ -20,15 +20,15 @@ import lombok.val;
 
 @Tag("aire-code-panel")
 @JsModule(Paths.CodePanel_SOURCE)
-@CssImport(Paths.CodePanel_STYLES)
+//@CssImport(Paths.CodePanel_STYLES)
 // @JsModule("@aire-ux/aire-code-panel/aire-code-panel")
 // @CssImport("@aire-ux/aire-code-panel/styles/aire-code-panel.css")
 
 /** uncomment this if you have deployed this component into NPMJS */
 @JsModule("prismjs/prism.js")
 //@StyleSheet("prismjs/themes/prism.css")
-@CssImport(value = "prismjs/themes/prism.css", themeFor = "aire-code-panel")
-@CssImport(value = Paths.CodePanel_STYLES, themeFor = "aire-code-panel")
+//@CssImport(value = "prismjs/themes/prism.css", themeFor = "aire-code-panel")
+//@CssImport(value = Paths.CodePanel_STYLES, themeFor = "aire-code-panel")
 @NpmPackage(value = "prismjs", version = "1.29.0")
 // @NpmPackage(value = "@${organzation}/@aire-code-panel", version = Versions.CodePanel_VERSION)
 public class CodePanel extends Component implements HasSize {
@@ -125,10 +125,6 @@ public class CodePanel extends Component implements HasSize {
     );
   }
 
-  @Override
-  protected void onAttach(AttachEvent attachEvent) {
-    registerStyles("prismjs/themes/prism.css", "prismjs/themes/prism-dark.css");
-  }
 
   @NonNull
   protected LanguageLoader getLoader() {

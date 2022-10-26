@@ -2,7 +2,7 @@ import {
   CSSResult,
   html,
   HTMLTemplateResult,
-  LitElement, unsafeCSS
+  LitElement, PropertyValues, unsafeCSS
 } from "lit";
 
 import {
@@ -27,6 +27,10 @@ export class CodePanel extends LitElement implements ThemableMixinClass {
 
   @query('code.code-container')
   private code: HTMLElement | undefined;
+
+
+  @query('section.container')
+  private container: HTMLDivElement | undefined;
 
   @query('style')
   private styleElement : HTMLStyleElement | undefined;
@@ -53,12 +57,15 @@ export class CodePanel extends LitElement implements ThemableMixinClass {
   private dynamicStyles: string[] = [];
 
   static styles = css`
-  
+    pre.line-numbers code {
+      margin-left: -6em !important;
+      height: 100%;
+    
+    }
   `;
 
   constructor() {
     super();
-    console.log(this);
   }
 
   render(): HTMLTemplateResult {
@@ -66,10 +73,13 @@ export class CodePanel extends LitElement implements ThemableMixinClass {
       <style>
         ${this.dynamicStyles.join('\n')}
       </style>
-      <pre class="${this.lineNumbers ? 'line-numbers' : 'no-line-numbers'} language-${this.language}">
-        <code class="code-container language-${this.language}">
-        </code>
-      </pre>
+      <section class="container ${this.lineNumbers ? 'line-numbers' : 'no-line-numbers'} ">
+        
+        <pre class="${this.lineNumbers ? 'line-numbers' : 'no-line-numbers'} language-${this.language}">
+          <code class="code-container language-${this.language}">
+          </code>
+        </pre>
+      </section>
     `;
   }
 
@@ -84,6 +94,7 @@ export class CodePanel extends LitElement implements ThemableMixinClass {
 
 
   public importStyles(...styles: string[])  {
+    console.log(styles);
     this.dynamicStyles.push(...styles);
     this.requestUpdate();
   }
@@ -95,15 +106,13 @@ export class CodePanel extends LitElement implements ThemableMixinClass {
   }
 
 
+
   public registerPlugin(definition: string): void {
     const f = Function(definition);
     f();
-    // const highlightedDom = Prism.highlight(
-    //     this.contents!,
-    //     Prism.languages[this.language!],
-    //     this.language!
-    // );
-    // this.contents = highlightedDom;
+    if(this.code) {
+      Prism.highlightElement(this.code);
+    }
     this.requestUpdate();
   }
 
